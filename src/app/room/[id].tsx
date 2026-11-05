@@ -3,7 +3,7 @@
  * vestíbulo → minijuego (votación / revelación) → clasificación final.
  */
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { Alert, BackHandler, StyleSheet, Text, View } from 'react-native';
+import { Alert, BackHandler, Platform, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { api } from '@/backend/api';
 import { useRoundDriver } from '@/engine/useRoundDriver';
@@ -39,9 +39,15 @@ function RoomScreen({ roomId }: { roomId: string }) {
 
   const confirmLeave = useCallback(() => {
     const playing = state?.room.status === 'playing';
+    const message = playing ? 'La partida sigue sin ti. Podrás volver con el mismo código.' : '¿Seguro que quieres salir?';
+    if (Platform.OS === 'web') {
+      // Alert de React Native no muestra diálogos en el navegador.
+      if (globalThis.confirm?.(`Salir de la sala\n\n${message}`)) void leave();
+      return;
+    }
     Alert.alert(
       'Salir de la sala',
-      playing ? 'La partida sigue sin ti. Podrás volver con el mismo código.' : '¿Seguro que quieres salir?',
+      message,
       [
         { text: 'Cancelar', style: 'cancel' },
         { text: 'Salir', style: 'destructive', onPress: leave },

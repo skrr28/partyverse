@@ -33,6 +33,14 @@
     },
     "experiments": {
       "typedRoutes": true
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/favicon.png",
+      "backgroundColor": "#070B1F",
+      "name": "PARTYVERSE",
+      "shortName": "PARTYVERSE",
+      "themeColor": "#070B1F"
     }
   }
 }
