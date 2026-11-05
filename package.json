@@ -1,14 +1,22 @@
 {
   "name": "partyverse",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "expo-router/entry",
   "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
     "expo": "~58.0.23",
+    "expo-constants": "~58.0.15",
+    "expo-linking": "~58.0.16",
+    "expo-router": "~58.0.30",
+    "expo-sqlite": "~58.0.15",
     "expo-status-bar": "~58.0.4",
     "react": "19.3.0",
-    "react-native": "0.88.1"
+    "react-native": "0.88.1",
+    "react-native-safe-area-context": "~5.11.1",
+    "react-native-screens": "~4.30.1"
   },
   "devDependencies": {
+    "@types/node": "^22.20.5",
     "@types/react": "~19.3.0",
     "typescript": "~6.0.3"
   },
@@ -16,7 +24,14 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
+    "test": "node --test \"src/**/*.test.ts\"",
+    "test:db": "bash scripts/test-db.sh",
+    "test:parity": "bash scripts/test-db.sh --keep-for node --test src/scoring/parity.dbtest.ts",
+    "test:all": "npm run typecheck && npm test && npm run test:db && npm run test:parity"
   },
-  "private": true
+  "private": true,
+  "overrides": {
+    "react-dom": "19.3.0"
+  }
 }
