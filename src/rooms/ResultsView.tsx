@@ -5,6 +5,7 @@ import { toPartyError, type PartyError } from '@/backend/errors';
 import type { RoomState } from '@/backend/types';
 import { PlayerAvatar } from '@/players/PlayerAvatar';
 import { rankByScore } from '@/scoring/mostLikely';
+import { joinNames } from '@/local/logic';
 import { Banner, Body, NeonButton, NeonTitle } from '@/ui/components';
 import { colors, glow, radius, space } from '@/ui/theme';
 
@@ -35,7 +36,7 @@ export function ResultsView({ state, refresh, onLeave }: { state: RoomState; ref
       <View style={{ alignItems: 'center', gap: space.xs }}>
         <Text style={styles.kicker}>FIN DE LA PARTIDA</Text>
         <NeonTitle color={colors.pink} style={{ textAlign: 'center' }}>
-          {winners.length > 1 ? `¡Empate! ${winners.join(' y ')}` : `¡Gana ${winners[0] ?? '—'}!`}
+          {winners.length > 1 ? `¡Empate! ${joinNames(winners)}` : `¡Gana ${winners[0] ?? '—'}!`}
         </NeonTitle>
       </View>
 

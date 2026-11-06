@@ -1,7 +1,7 @@
 # PARTYVERSE
 
 App social de minijuegos multijugador en tiempo real para Android y iPhone.
-Primer modo: **¿Quién es más probable?**
+**54 juegos** en 10 categorías y 9 ambientes. Se juegan en un solo móvil y sin cuenta (modo local), y además está **¿Quién es más probable?** en línea, con un móvil por jugador.
 
 - **App:** Expo SDK 58 · React Native 0.88 · React 19.3 · TypeScript · Expo Router
 - **Backend:** Supabase (Auth anónima, PostgreSQL, Realtime)
@@ -72,6 +72,7 @@ npm test              # reglas de votación, puntuación, clasificación y reloj
 npm run test:db       # PostgreSQL temporal + migraciones reales + partida completa simulada
 npm run test:parity   # la puntuación SQL y la de TypeScript coinciden en 60 rondas aleatorias
 npm run test:all      # todo lo anterior
+npm run test:web      # recorrido real en Chrome sin interfaz (14 flujos, capturas en .e2e-shots/)
 ```
 
 `test:db` aplica un *shim* mínimo (`supabase/sql-tests/supabase_shim.sql`) que reproduce `auth.uid()` y los roles de Supabase, y luego juega una partida completa con 3 usuarios (66 comprobaciones: permisos RLS, autovoto, duplicados, votos ocultos, empates, cierre por tiempo, abandono, reconexión, sala llena, reinicio).

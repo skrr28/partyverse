@@ -42,7 +42,7 @@ function ProfileScreen() {
     try {
       await saveProfile(trimmed, avatar);
       if (router.canGoBack() && profile) router.back();
-      else router.replace(routes.home);
+      else router.replace(routes.online);
     } catch (e) {
       setError(toPartyError(e));
     } finally {

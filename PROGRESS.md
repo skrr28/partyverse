@@ -43,6 +43,38 @@ Motivo: este entorno no tiene dispositivos ni salida de red hacia supabase.co. S
   - Prueba en la BD real (deshecha al terminar): hash ilegible y en formato bcrypt, contraseña incorrecta rechazada, contraseña correcta admitida, intento fallido registrado.
   - `tsc` y el bundle web compilan.
 
+## Entrega 2 · 2026-11-06 · Catálogo amplio y modo local
+
+### Lo que se añadió
+
+- **Portada nueva:**
+  - Botón «¡EMPEZAR A JUGAR!», más «Crear una partida» y «Unirme con código».
+  - Selector de 9 ambientes.
+  - Partidas recientes, favoritos y recomendados según el tamaño del grupo.
+  - Categorías, populares, nuevos y próximos lanzamientos.
+  - Acceso a «Perfil y configuración».
+- **Flujo en tres pasos:** ambiente → participantes (hasta 20, guardados en el dispositivo) → catálogo filtrable por ambiente, categoría, tamaño del grupo y búsqueda.
+- **54 juegos en las 10 categorías del prompt maestro (A–J),** movidos por 12 motores:
+  - Tarjetas por turnos: verdad o reto con 3 intensidades y tarjetas propias.
+  - Adivinar contra reloj: individual o por 2 equipos, con dificultad.
+  - Trivia: 108 preguntas, puntos por rapidez y explicaciones.
+  - Ruleta: giro animado con resultado aleatorio real, editable, con ruletas guardadas.
+  - Impostor: roles privados, variante infiltrado, voto secreto, desempate y robo de puntos.
+  - Basta / Stop.
+  - Cara o cruz, piedra-papel-tijera, adivina el número, mayor o menor, reflejos y memoria visual.
+- **Resultados:** clasificación con empates, equipos, reconocimientos y confeti.
+- **+18:** ambiente y juegos separados, ocultos por defecto en el catálogo. Piden confirmar que todos tienen 18 años o más (válido hasta cerrar la app) y se pueden ocultar del todo en Configuración. El contenido es atrevido pero no explícito, y «Paso» nunca penaliza.
+- **Modo en línea (`/online`):** el de la entrega 1. Ya no hace falta cuenta para jugar en local.
+
+### Verificado
+
+- 37 pruebas unitarias:
+  - Lógica de los motores con aleatoriedad determinista: la ruleta cae en el segmento elegido y reparte de forma uniforme; impostor; votos; equipos.
+  - Validación del contenido: sin duplicados, respuestas de trivia válidas y +18 aislado.
+- Recorrido real en Chrome sin interfaz, a tamaño de móvil (390×844): 14 flujos (`npm run test:web`), sin errores de consola.
+  - Encontró y corrigió 2 fallos: un campo que desbordaba la pantalla en web y el retraso de 50 ms al tocar en reflejos.
+- `tsc`, bundles web/Android/iOS y pruebas SQL.
+
 ### Pendiente / siguientes entregas
 
 - [ ] Prueba manual en dispositivos reales (Android + iPhone) con Supabase conectado.

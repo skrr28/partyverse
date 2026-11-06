@@ -168,6 +168,8 @@ export const styles = StyleSheet.create({
     padding: space.md,
   },
   input: {
+    // En web, <input> tiene un ancho mínimo propio: sin esto no se encoge en filas.
+    minWidth: 0,
     minHeight: 54,
     borderRadius: radius.md,
     borderWidth: 2,

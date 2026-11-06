@@ -1,23 +1,68 @@
-/** 3. Inicio: Crear sala / Unirme con código. */
+/** Juego en línea: acceso de invitado, crear sala y unirse con código. */
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { api } from '@/backend/api';
 import { toPartyError, type PartyError } from '@/backend/errors';
 import { PlayerAvatar } from '@/players/PlayerAvatar';
 import { useSession } from '@/players/session';
-import { RequireSession } from '@/navigation/RequireSession';
 import { routes } from '@/navigation/routes';
-import { Banner, Body, Card, NeonButton, NeonInput, NeonTitle, Screen } from '@/ui/components';
+import { Banner, Body, Card, LoadingView, NeonButton, NeonInput, NeonTitle, Screen } from '@/ui/components';
 import { colors, space } from '@/ui/theme';
 
 const CODE_RE = /^[A-HJKMNP-Z2-9]{6}$/;
 
-export default function HomeRoute() {
+export default function OnlineRoute() {
+  const { status, profile, profileLoaded, profileError, reloadProfile, signInAsGuest } = useSession();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<PartyError | null>(null);
+
+  if (status === 'signedIn' && profileLoaded && !profile) return <Redirect href={routes.profile} />;
+  if (status === 'signedIn' && profile) return <HomeScreen />;
+
+  const enter = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await signInAsGuest();
+    } catch (e) {
+      setError(toPartyError(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
-    <RequireSession>
-      <HomeScreen />
-    </RequireSession>
+    <Screen scroll>
+      <BackToHub />
+      <NeonTitle>Jugar en línea</NeonTitle>
+      <Body muted>Cada persona juega desde su propio móvil: salas con código y contraseña, votos secretos y puntos validados en el servidor.</Body>
+      {status === 'unconfigured' ? (
+        <Banner kind="warning" text="El modo en línea aún no está configurado en esta instalación. Los juegos locales funcionan igual." />
+      ) : status === 'loading' || (status === 'signedIn' && !profileLoaded && !profileError) ? (
+        <LoadingView label="Conectando…" />
+      ) : profileError ? (
+        <Banner text={profileError.message} onRetry={reloadProfile} />
+      ) : (
+        <Card accent={colors.cyan} style={{ gap: space.sm }}>
+          <Text style={styles.cardTitle}>Entrar como invitado</Text>
+          <Body muted>Sin registro. Después eliges apodo y avatar.</Body>
+          {error ? <Banner text={error.message} /> : null}
+          <NeonButton label="Jugar en línea como invitado" onPress={enter} loading={busy} />
+        </Card>
+      )}
+    </Screen>
+  );
+}
+
+function BackToHub() {
+  return (
+    <NeonButton
+      label="← Inicio"
+      variant="ghost"
+      onPress={() => (router.canGoBack() ? router.back() : router.replace(routes.hub))}
+      style={{ alignSelf: 'flex-start', minHeight: 40, paddingHorizontal: space.md }}
+    />
   );
 }
 
@@ -65,6 +110,7 @@ function HomeScreen() {
 
   return (
     <Screen scroll>
+      <BackToHub />
       <View style={styles.header}>
         <PlayerAvatar avatar={profile?.avatar ?? 'astro'} size={52} />
         <View style={{ flex: 1 }}>
@@ -78,7 +124,7 @@ function HomeScreen() {
         <NeonButton label="Editar" variant="ghost" onPress={() => router.push(routes.profile)} style={styles.edit} />
       </View>
 
-      <NeonTitle>¿A qué jugamos hoy?</NeonTitle>
+      <NeonTitle>Jugar en línea</NeonTitle>
 
       <Card accent={colors.violet} style={{ gap: space.sm }}>
         <Text style={styles.cardTitle}>Crear sala</Text>

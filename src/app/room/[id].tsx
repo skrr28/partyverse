@@ -34,7 +34,7 @@ function RoomScreen({ roomId }: { roomId: string }) {
       // Si no hay red, se sale igualmente; el servidor conserva el puesto para reconectar.
     }
     if (router.canGoBack()) router.back();
-    else router.replace(routes.home);
+    else router.replace(routes.online);
   }, [roomId]);
 
   const confirmLeave = useCallback(() => {
@@ -70,7 +70,7 @@ function RoomScreen({ roomId }: { roomId: string }) {
         {error ? (
           <View style={{ gap: space.md, flex: 1, justifyContent: 'center' }}>
             <Banner text={error.message} onRetry={refresh} />
-            <NeonButton label="Volver al inicio" variant="ghost" onPress={() => router.replace(routes.home)} />
+            <NeonButton label="Volver al inicio" variant="ghost" onPress={() => router.replace(routes.online)} />
           </View>
         ) : (
           <LoadingView label="Entrando en la sala…" />
@@ -115,7 +115,7 @@ function RoomScreen({ roomId }: { roomId: string }) {
       {body}
 
       {room.status === 'closed' ? (
-        <NeonButton label="Volver al inicio" onPress={() => router.replace(routes.home)} />
+        <NeonButton label="Volver al inicio" onPress={() => router.replace(routes.online)} />
       ) : null}
     </Screen>
   );

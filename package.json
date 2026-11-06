@@ -30,7 +30,8 @@
     "test": "node --test \"src/**/*.test.ts\"",
     "test:db": "bash scripts/test-db.sh",
     "test:parity": "bash scripts/test-db.sh --keep-for node --test src/scoring/parity.dbtest.ts",
-    "test:all": "npm run typecheck && npm test && npm run test:db && npm run test:parity"
+    "test:all": "npm run typecheck && npm test && npm run test:db && npm run test:parity",
+    "test:web": "npx expo export --platform web && node scripts/e2e/run.mjs dist .e2e-shots"
   },
   "private": true,
   "overrides": {
