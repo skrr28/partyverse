@@ -17,6 +17,7 @@ end;
 $$;
 
 create schema if not exists auth;
+create schema if not exists extensions;
 grant usage on schema auth to anon, authenticated;
 grant usage on schema public to anon, authenticated;
 

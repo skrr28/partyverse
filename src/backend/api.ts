@@ -1,6 +1,6 @@
 /** Llamadas tipadas a las funciones de servidor. Toda escritura pasa por aquí. */
 import { getSupabase } from './supabase';
-import { toPartyError } from './errors';
+import { PartyError, toPartyError } from './errors';
 import type { Profile, RoomState } from './types';
 
 async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
@@ -17,10 +17,19 @@ export const api = {
   upsertProfile: (nickname: string, avatar: string) =>
     rpc<Profile>('upsert_profile', { p_nickname: nickname, p_avatar: avatar }),
 
-  createRoom: () => rpc<{ room_id: string; code: string }>('create_room'),
+  createRoom: (password: string) =>
+    rpc<{ room_id: string; code: string }>('create_room', { p_password: password }),
 
-  joinRoom: (code: string) =>
-    rpc<{ room_id: string; code: string; rejoined: boolean }>('join_room', { p_code: code }),
+  async joinRoom(code: string, password: string) {
+    // join_room devuelve {error} en vez de lanzar para código o contraseña
+    // incorrectos (así el servidor puede contar los intentos fallidos).
+    const r = await rpc<{ room_id: string; code: string; rejoined: boolean } | { error: string }>('join_room', {
+      p_code: code,
+      p_password: password,
+    });
+    if ('error' in r) throw new PartyError(r.error);
+    return r;
+  },
 
   leaveRoom: (roomId: string) => rpc<void>('leave_room', { p_room_id: roomId }),
 

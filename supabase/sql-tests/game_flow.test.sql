@@ -79,7 +79,7 @@ end $$;
 
 -- ---------- 1. Perfil ----------
 select pvtest.act_as('u1');
-select pvtest.expect_error('select public.create_room()', 'PV_PROFILE_REQUIRED', 'crear sala exige perfil');
+select pvtest.expect_error('select public.create_room(''Neon2026'')', 'PV_PROFILE_REQUIRED', 'crear sala exige perfil');
 select pvtest.expect_error($q$select public.upsert_profile('a', 'astro')$q$, 'PV_INVALID_NICKNAME', 'apodo demasiado corto');
 select pvtest.expect_error($q$select public.upsert_profile('Ana', 'tanque')$q$, 'PV_INVALID_AVATAR', 'avatar desconocido');
 select public.upsert_profile('  Ana   Neón ', 'astro') \gset
@@ -92,18 +92,27 @@ select pvtest.act_as('u4'); select public.upsert_profile('Dani', 'cat') \gset
 -- ---------- 2. Sala ----------
 select pvtest.act_as('u1');
 select pvtest.put('room', (r ->> 'room_id')), pvtest.put('code', r ->> 'code')
-  from (select public.create_room() as r) s \gset
+  from (select public.create_room('Neon2026') as r) s \gset
 select pvtest.check((select v from pvtest.ctx where k = 'code') ~ '^[A-HJKMNP-Z2-9]{6}$', 'código de sala con formato válido');
 
+select pvtest.expect_error('select public.create_room(''abc'')', 'PV_INVALID_PASSWORD', 'contraseña de sala demasiado corta');
 select pvtest.act_as('u2');
-select public.join_room(lower((select v from pvtest.ctx where k = 'code'))) \gset
-select pvtest.expect_error('select public.join_room(''ZZZZZZ'')', 'PV_ROOM_NOT_FOUND', 'código inexistente');
+select pvtest.check(public.join_room((select v from pvtest.ctx where k = 'code'), 'incorrecta') ->> 'error' = 'PV_WRONG_PASSWORD', 'contraseña incorrecta rechazada');
+select pvtest.check(public.join_room((select v from pvtest.ctx where k = 'code'), null) ->> 'error' = 'PV_WRONG_PASSWORD', 'sin contraseña no se entra');
+select pvtest.check(not exists (select 1 from public.room_players where user_id = auth.uid()), 'el intento fallido no añade al jugador');
+select pvtest.act_as('u1');
+select pvtest.expect_error('select count(*) from public.room_secrets', 'permission denied', 'hash de contraseña ilegible para clientes');
+reset role;
+select pvtest.check((select password_hash from public.room_secrets limit 1) like '$2_$%', 'se guarda un hash bcrypt, no la contraseña');
+select pvtest.act_as('u2');
+select public.join_room(lower((select v from pvtest.ctx where k = 'code')), 'Neon2026') \gset
+select pvtest.check(public.join_room('ZZZZZZ', 'Neon2026') ->> 'error' = 'PV_ROOM_NOT_FOUND', 'código inexistente');
 
 select pvtest.act_as('u1');
 select pvtest.expect_error('select public.start_game(pvtest.id(''room''))', 'PV_NOT_ENOUGH_PLAYERS', 'mínimo 3 jugadores');
 
 select pvtest.act_as('u3');
-select public.join_room((select v from pvtest.ctx where k = 'code')) \gset
+select public.join_room((select v from pvtest.ctx where k = 'code'), 'Neon2026') \gset
 select pvtest.expect_error('select public.start_game(pvtest.id(''room''))', 'PV_NOT_HOST', 'solo el anfitrión inicia');
 
 -- ---------- 3. Seguridad: RLS y permisos ----------
@@ -123,7 +132,7 @@ select pvtest.expect_error('select public.get_room_state(pvtest.id(''room''))', 
 
 reset role;
 set role anon;
-select pvtest.expect_error('select public.create_room()', 'permission denied', 'anon sin sesión no puede llamar RPC');
+select pvtest.expect_error('select public.create_room(''Neon2026'')', 'permission denied', 'anon sin sesión no puede llamar RPC');
 reset role;
 
 -- ---------- 4. Ronda 1: validaciones de voto ----------
@@ -207,9 +216,9 @@ select pvtest.check(pvtest.state('u1') #>> '{round,phase}' = 'reveal', 'si el ú
 select pvtest.check(pvtest.score('u1') = 600 and pvtest.score('u2') = 250 and pvtest.score('u3') = 450, 'ronda 4 puntuada');
 
 select pvtest.act_as('u4');
-select pvtest.expect_error('select public.join_room((select v from pvtest.ctx where k = ''code''))', 'PV_GAME_IN_PROGRESS', 'no se entra a una partida en curso');
+select pvtest.expect_error('select public.join_room((select v from pvtest.ctx where k = ''code''), ''Neon2026'')', 'PV_GAME_IN_PROGRESS', 'no se entra a una partida en curso');
 select pvtest.act_as('u2');
-select pvtest.check((public.join_room((select v from pvtest.ctx where k = 'code')) ->> 'rejoined')::boolean, 'reconexión de un jugador de la sala');
+select pvtest.check((public.join_room((select v from pvtest.ctx where k = 'code'), null) ->> 'rejoined')::boolean, 'reconexión de un jugador de la sala (sin contraseña)');
 select pvtest.check(pvtest.score('u2') = 250, 'la reconexión conserva los puntos');
 
 -- ---------- 8. Ronda 5 y final ----------
@@ -240,19 +249,19 @@ select pvtest.id('u' || i), 'Jugador' || i, 'ghost' from generate_series(5, 16) 
 
 select pvtest.act_as('u4');
 select pvtest.put('room', (r ->> 'room_id')), pvtest.put('code', r ->> 'code')
-  from (select public.create_room() as r) s \gset
+  from (select public.create_room('Neon2026') as r) s \gset
 
 do $$
 declare i int;
 begin
   for i in 5..15 loop
     perform pvtest.act_as('u' || i);
-    perform public.join_room((select v from pvtest.ctx where k = 'code'));
+    perform public.join_room((select v from pvtest.ctx where k = 'code'), 'Neon2026');
   end loop;
 end $$;
 
 select pvtest.act_as('u16');
-select pvtest.expect_error('select public.join_room((select v from pvtest.ctx where k = ''code''))', 'PV_ROOM_FULL', 'la sala llena rechaza al jugador 13');
+select pvtest.expect_error('select public.join_room((select v from pvtest.ctx where k = ''code''), ''Neon2026'')', 'PV_ROOM_FULL', 'la sala llena rechaza al jugador 13');
 
 select pvtest.act_as('u4');
 select pvtest.check(jsonb_array_length(pvtest.state('u4') -> 'players') = 12, 'la sala tiene 12 jugadores');
@@ -260,8 +269,13 @@ select public.leave_room(pvtest.id('room')) \gset
 select pvtest.act_as('u5');
 select pvtest.check((pvtest.state('u5') #>> '{room,host_id}')::uuid = pvtest.id('u5'), 'el anfitrión pasa al siguiente jugador');
 select pvtest.act_as('u16');
-select public.join_room((select v from pvtest.ctx where k = 'code')) \gset
+select public.join_room((select v from pvtest.ctx where k = 'code'), 'Neon2026') \gset
 select pvtest.check(true, 'tras una salida, vuelve a haber hueco');
+
+-- ---------- 10. Freno a la fuerza bruta ----------
+select pvtest.act_as('u16');
+select count(public.join_room('ZZZZZZ', 'x1234')) from generate_series(1, 10) \gset
+select pvtest.expect_error('select public.join_room((select v from pvtest.ctx where k = ''code''), ''Neon2026'')', 'PV_TOO_MANY_ATTEMPTS', 'tras 10 fallos se bloquean los intentos');
 
 reset role;
 \echo 'TODAS LAS PRUEBAS SQL SUPERADAS'

@@ -24,17 +24,22 @@ export default function HomeRoute() {
 function HomeScreen() {
   const { profile } = useSession();
   const [code, setCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [joinPassword, setJoinPassword] = useState('');
   const [busy, setBusy] = useState<'create' | 'join' | null>(null);
   const [error, setError] = useState<PartyError | null>(null);
 
   const normalized = code.toUpperCase().replace(/[^A-Z0-9]/g, '');
   const codeValid = CODE_RE.test(normalized);
+  const newPasswordValid = newPassword.length >= 4 && newPassword.length <= 32;
+  const joinPasswordValid = joinPassword.length >= 1;
 
   const create = async () => {
     setBusy('create');
     setError(null);
     try {
-      const r = await api.createRoom();
+      const r = await api.createRoom(newPassword);
+      setNewPassword('');
       router.push(routes.room(r.room_id));
     } catch (e) {
       setError(toPartyError(e));
@@ -47,8 +52,9 @@ function HomeScreen() {
     setBusy('join');
     setError(null);
     try {
-      const r = await api.joinRoom(normalized);
+      const r = await api.joinRoom(normalized, joinPassword);
       setCode('');
+      setJoinPassword('');
       router.push(routes.room(r.room_id));
     } catch (e) {
       setError(toPartyError(e));
@@ -76,8 +82,25 @@ function HomeScreen() {
 
       <Card accent={colors.violet} style={{ gap: space.sm }}>
         <Text style={styles.cardTitle}>Crear sala</Text>
-        <Body muted>Serás el anfitrión. Comparte el código con 2 a 11 amigos.</Body>
-        <NeonButton label="Crear sala" onPress={create} loading={busy === 'create'} disabled={busy !== null} />
+        <Body muted>Serás el anfitrión. Comparte el código y la contraseña con 2 a 11 amigos.</Body>
+        <NeonInput
+          value={newPassword}
+          onChangeText={setNewPassword}
+          placeholder="Contraseña de la sala (4–32)"
+          secureTextEntry
+          autoCapitalize="none"
+          autoCorrect={false}
+          maxLength={32}
+          returnKeyType="go"
+          onSubmitEditing={() => newPasswordValid && create()}
+          accessibilityLabel="Contraseña para la nueva sala"
+        />
+        <NeonButton
+          label="Crear sala"
+          onPress={create}
+          loading={busy === 'create'}
+          disabled={!newPasswordValid || busy !== null}
+        />
       </Card>
 
       <Card accent={colors.cyan} style={{ gap: space.sm }}>
@@ -90,16 +113,27 @@ function HomeScreen() {
           autoCorrect={false}
           maxLength={6}
           style={styles.codeInput}
-          returnKeyType="go"
-          onSubmitEditing={() => codeValid && join()}
+          returnKeyType="next"
           accessibilityLabel="Código de sala"
+        />
+        <NeonInput
+          value={joinPassword}
+          onChangeText={setJoinPassword}
+          placeholder="Contraseña"
+          secureTextEntry
+          autoCapitalize="none"
+          autoCorrect={false}
+          maxLength={32}
+          returnKeyType="go"
+          onSubmitEditing={() => codeValid && joinPasswordValid && join()}
+          accessibilityLabel="Contraseña de la sala"
         />
         <NeonButton
           label="Unirme"
           variant="secondary"
           onPress={join}
           loading={busy === 'join'}
-          disabled={!codeValid || busy !== null}
+          disabled={!codeValid || !joinPasswordValid || busy !== null}
         />
       </Card>
 

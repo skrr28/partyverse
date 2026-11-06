@@ -33,6 +33,16 @@
 
 Motivo: este entorno no tiene dispositivos ni salida de red hacia supabase.co. Siguiente paso: activar el acceso de invitado y seguir el README §3 con 3 dispositivos.
 
+### Contraseña por sala (2026-11-06)
+
+- Migración `20261106000003_room_passwords.sql`, aplicada también en Supabase.
+- El hash bcrypt se guarda en la tabla `room_secrets`, que ningún cliente puede leer. No va en `rooms`, porque Realtime envía esa fila a los jugadores.
+- Freno contra la fuerza bruta: 10 fallos cada 10 minutos por jugador. Un fallo se devuelve como `{error}` y no como excepción, para que el intento quede registrado.
+- Verificado:
+  - 73 comprobaciones SQL en local.
+  - Prueba en la BD real (deshecha al terminar): hash ilegible y en formato bcrypt, contraseña incorrecta rechazada, contraseña correcta admitida, intento fallido registrado.
+  - `tsc` y el bundle web compilan.
+
 ### Pendiente / siguientes entregas
 
 - [ ] Prueba manual en dispositivos reales (Android + iPhone) con Supabase conectado.

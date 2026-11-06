@@ -34,7 +34,7 @@ export function LobbyView({ state, refresh }: { state: RoomState; refresh: () =>
   };
 
   const share = () =>
-    Share.share({ message: `¡Únete a mi sala de PARTYVERSE! Código: ${room.code}` }).catch(() => undefined);
+    Share.share({ message: `¡Únete a mi sala de PARTYVERSE! Código: ${room.code} (te paso la contraseña aparte 🔒)` }).catch(() => undefined);
 
   return (
     <View style={{ gap: space.md }}>
@@ -43,6 +43,9 @@ export function LobbyView({ state, refresh }: { state: RoomState; refresh: () =>
         <Text style={styles.code} selectable accessibilityLabel={`Código ${room.code.split('').join(' ')}`}>
           {room.code}
         </Text>
+        <Body muted style={{ textAlign: 'center', fontSize: 13 }}>
+          🔒 Sala con contraseña: compártela solo con tus amigos.
+        </Body>
         <NeonButton label="Compartir código" variant="secondary" onPress={share} style={{ alignSelf: 'stretch' }} />
       </Card>
 
