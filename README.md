@@ -126,3 +126,10 @@ Las reglas críticas necesitan transacciones y bloqueos sobre los mismos datos; 
 - 3–12 jugadores · 5 rondas · 30 s por votación · 1 voto por jugador y ronda.
 - Voto válido: +100. Elegir a la persona más votada: +50. En empate, todos los empatados cuentan como «más votados».
 - No se puede votar por uno mismo, votar dos veces ni ver votos ajenos antes del cierre.
+
+## 7. Versión web (Vercel o Netlify)
+
+La app también funciona en el navegador del móvil. `vercel.json` y `netlify.toml` ya traen el comando de compilación (`npx expo export --platform web`), la carpeta de salida (`dist`) y las reglas de rutas. `.env.production` contiene los dos valores públicos de Supabase, así que no hay que configurar variables.
+
+- **Vercel:** vercel.com/new → *Import Git Repository* → elige el repo → *Deploy*.
+- **Netlify:** el sitio `partyverse-ykj3` → *Project configuration → Build & deploy → Link repository*.
