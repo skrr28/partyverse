@@ -1,0 +1,15 @@
+# Compilación de la versión web de PARTYVERSE en Netlify.
+# Las variables EXPO_PUBLIC_* se configuran en Netlify (no aquí).
+[build]
+  command = "npx expo export --platform web"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NPM_FLAGS = "--no-audit --no-fund"
+
+# SPA: cualquier ruta (p. ej. /room/<id>) sirve index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
